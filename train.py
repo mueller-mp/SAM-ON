@@ -1,7 +1,6 @@
 import argparse
 import numpy.random
 import torch
-import torchvision
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100
@@ -9,10 +8,7 @@ from timm.loss import LabelSmoothingCrossEntropy
 from homura.vision.models.cifar_resnet import wrn28_10
 from sam_bn import SAM_BN, ASAM_BN
 import os
-from torch.utils.tensorboard import SummaryWriter
-from datetime import datetime
 import time
-from copy import deepcopy
 from autoaugment import CIFAR10Policy
 
 def load_cifar(data_loader, batch_size=256, num_workers=2, autoaugment=False, data_path = '/scratch/datasets/CIFAR100/'):
