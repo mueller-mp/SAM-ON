@@ -50,7 +50,7 @@ def train(args):
     state = {k: v for k, v in args._get_kwargs()}
     print(state)
     # Data Loader
-    train_loader, test_loader = load_cifar(eval(args.dataset), args.m, autoaugment=args.autoaugment, data_path=args.data_path)
+    train_loader, test_loader = load_cifar(eval(args.dataset), args.batch_size, autoaugment=args.autoaugment, data_path=args.data_path)
     num_classes = 100
 
     print('Creating Model...')
@@ -195,7 +195,7 @@ if __name__ == "__main__":
     parser.add_argument("--dataset", default='CIFAR100', type=str, help="CIFAR10 or CIFAR100.")
     parser.add_argument("--data_path", default='/scratch/datasets/CIFAR100/', type=str, help="path to data root.")
     parser.add_argument("--model", default='wrn28_10', type=str, help="Name of model architecure")
-    parser.add_argument("--minimizer", default='ASAM', type=str, help="ASAM_BN, SAM_BN or SGD")
+    parser.add_argument("--minimizer", default='ASAM_BN', type=str, help="ASAM_BN, SAM_BN or SGD")
     parser.add_argument("--p", default='2', type=str, choices=['2', 'infinity'])
     parser.add_argument("--lr", default=0.1, type=float, help="Initial learning rate.")
     parser.add_argument("--momentum", default=0.9, type=float, help="Momentum.")
