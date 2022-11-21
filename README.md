@@ -8,5 +8,5 @@ The code is set up to train a WRN28-10 on CIFAR100, and the desired options can 
  Currently, SAM_BN, ASAM_BN and SGD can be selected as optimizers. If ASAM_BN or SAM_BN is chosen and neither the only_bn nor the no_bn flag are set, the conventional (A)SAM optimizer is used.
 ### New Models
 For now, the optimizer is selecting the BN-layers by name. If you would like to try it on other models than the implemented WRN28-10, make sure that _all_ BatchNorm parameters contain the string 'norm' or 'bn' in their name, otherwise the optimizer does not recognize them. You can check this by calling model.parameters().
-# Citations
-# License
+### Citations
+### License
