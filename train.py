@@ -106,6 +106,7 @@ def train(args):
             if args.minimizer=='SGD':
                 minimizer.step()
                 minimizer.zero_grad()
+                batch_loss_2=torch.tensor([0])
             else:
                 # Ascent Step
                 minimizer.ascent_step()
