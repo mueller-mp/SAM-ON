@@ -9,4 +9,14 @@ The code is set up to train a WRN28-10 on CIFAR100, and the desired options can 
 ### New Models
 For now, the optimizer is selecting the BN-layers by name. If you would like to try it on other models than the implemented WRN28-10, make sure that _all_ BatchNorm parameters contain the string 'norm' or 'bn' in their name, otherwise the optimizer does not recognize them. You can check this by calling model.parameters().
 ### Citations
+```
+@inproceedings{
+mueller2022perturbing,
+title={Perturbing BatchNorm and Only BatchNorm Benefits Sharpness-Aware Minimization},
+author={Maximilian Mueller and Matthias Hein},
+booktitle={Has it Trained Yet? NeurIPS 2022 Workshop},
+year={2022},
+url={https://openreview.net/forum?id=yL_iq-Q-ORS}
+}
+```
 ### License
