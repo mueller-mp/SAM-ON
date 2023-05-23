@@ -1,7 +1,7 @@
 import torch
 from collections import defaultdict
 
-class ASAM_BN:
+class ASAM_ON:
     def __init__(self, optimizer, model, rho=0.5, eta=0.01, adaptive=True, p='2', normalize_bias=False, elementwise=True, layerwise=False, no_bn=False, only_bn=False):
         self.optimizer = optimizer
         self.model = model
@@ -77,7 +77,7 @@ class ASAM_BN:
         self.optimizer.step()
         self.optimizer.zero_grad()
 
-class SAM_BN(ASAM_BN):
+class SAM_ON(ASAM_ON):
     @torch.no_grad()
     def ascent_step(self):
         grads = []
