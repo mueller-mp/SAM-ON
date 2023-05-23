@@ -230,7 +230,7 @@ if __name__ == "__main__":
     parser.add_argument("--end_sam", default=100000, type=float, help="end SAM at this epoch")
     args = parser.parse_args()
 
-    assert args.minimizer in ['SGD', 'SAM_BN', 'ASAM_BN', 'AdamW'], \
+    assert args.minimizer in ['SGD', 'SAM_ON', 'ASAM_ON', 'AdamW'], \
         f"Invalid minimizer type. Please select ASAM or SAM"
 
     # set seed
