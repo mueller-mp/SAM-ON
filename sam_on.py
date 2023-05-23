@@ -22,8 +22,11 @@ class ASAM_BN:
         wgrads = []
         for n, p in self.model.named_parameters():
             self.state[p]['old_p'] = p.data.clone()
+            self.state[p]['old_p'] = p.data.clone()
             if (p.grad is None) or (self.no_bn and ('norm' in n or 'bn' in n)) or (self.only_bn and 'norm' not in n and 'bn' not in n):
+                self.state[p]['perturbed']=False
                 continue
+            self.state[p]['perturbed']=True
             t_w = self.state[p].get("eps")
             if t_w is None: # initialize t_w
                 t_w = torch.clone(p).detach()
@@ -45,7 +48,8 @@ class ASAM_BN:
         wgrad_norm = torch.norm(torch.stack(wgrads), p=2) + 1.e-16
 
         for n, p in self.model.named_parameters():
-            if (p.grad is None) or (self.no_bn and ('norm' in n or 'bn' in n)) or (self.only_bn and 'norm' not in n and 'bn' not in n):
+            if (p.grad is None) or (not self.state[p]['perturbed']):
+                # p.requires_grad=True  # for runtime measurement
                 continue
             t_w = self.state[p].get("eps") # get normalization operator
             if self.p=='2':
@@ -65,7 +69,8 @@ class ASAM_BN:
     @torch.no_grad()
     def descent_step(self):
         for n, p in self.model.named_parameters():
-            if (p.grad is None) or (self.no_bn and ('norm' in n or 'bn' in n)) or (self.only_bn and 'norm' not in n and 'bn' not in n):
+            if (p.grad is None) or (not self.state[p]['perturbed']):
+                # p.requires_grad=False # for runtime measurement
                 continue
             p.data = self.state[p]['old_p']
 
@@ -77,13 +82,16 @@ class SAM_BN(ASAM_BN):
     def ascent_step(self):
         grads = []
         for n, p in self.model.named_parameters():
-            if (p.grad is None) or (self.no_bn and ('norm' in n or 'bn' in n)) or (self.only_bn and 'norm' not in n and 'bn' not in n):
-                continue
             self.state[p]['old_p'] = p.data.clone()
+            if (p.grad is None) or (self.no_bn and ('norm' in n or 'bn' in n)) or (self.only_bn and 'norm' not in n and 'bn' not in n):
+                self.state[p]['perturbed']=False
+                continue
+            self.state[p]['perturbed']=True
             grads.append(torch.norm(p.grad, p=2))
         grad_norm = torch.norm(torch.stack(grads), p=2) + 1.e-16
         for n, p in self.model.named_parameters():
-            if (p.grad is None) or (self.no_bn and ('norm' in n or 'bn' in n)) or (self.only_bn and 'norm' not in n and 'bn' not in n):
+            if (p.grad is None) or (not self.state[p]['perturbed']):
+                # p.requires_grad=True # for runtime measurement
                 continue
             eps = self.state[p].get("eps")
             if eps is None:
@@ -93,3 +101,5 @@ class SAM_BN(ASAM_BN):
             eps.mul_(self.rho / grad_norm)
             p.add_(eps)
         self.optimizer.zero_grad()
+
+

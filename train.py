@@ -5,8 +5,8 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100
 from timm.loss import LabelSmoothingCrossEntropy
-from homura.vision.models.cifar_resnet import wrn28_10
-from sam_bn import SAM_BN, ASAM_BN
+from models import get_model
+from sam_on import SAM_ON, ASAM_ON
 import os
 import time
 from autoaugment import CIFAR10Policy
@@ -51,12 +51,11 @@ def train(args):
     print(state)
     # Data Loader
     train_loader, test_loader = load_cifar(eval(args.dataset), args.batch_size, autoaugment=args.autoaugment, data_path=args.data_path)
-    num_classes = 100
+    num_classes = 10 if args.dataset == 'CIFAR10' else 100
 
     print('Creating Model...')
     # Model
-    model = eval(args.model)(num_classes=num_classes).cuda()
-
+    model = get_model(model_name=args.model,num_classes=num_classes)
     print('Model created.')
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 1:
@@ -66,16 +65,20 @@ def train(args):
     model.to(device)
     print('On device.')
     # Minimizer
-    optimizer = torch.optim.SGD(model.parameters(), lr=args.lr,
+    if args.base_minimizer=='SGD':
+            optimizer = torch.optim.SGD(model.parameters(), lr=args.lr,
                                 momentum=args.momentum, weight_decay=args.weight_decay)
-    if args.minimizer == 'SGD':
+    elif args.base_minimizer=='AdamW':
+        optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    else:
+        raise NotImplementedError('Invalid base optimizer. Choose one of either SGD or AdamW.')
+    
+    if args.minimizer == 'SGD' or args.minimizer=='AdamW':
         minimizer = optimizer
-    elif 'BN' in args.minimizer:
+    else:
         minimizer = eval(args.minimizer)(optimizer, model, rho=args.rho, eta=args.eta, layerwise=args.layerwise,
                                          elementwise=args.elementwise, p=args.p, normalize_bias=args.normalize_bias,
                                          no_bn=args.no_bn, only_bn = args.only_bn)
-    else:
-        raise NotImplementedError
     # Learning Rate Scheduler
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(minimizer if args.minimizer=='SGD' else minimizer.optimizer, args.epochs)
 
@@ -90,6 +93,11 @@ def train(args):
     loss_best = 0.
     for epoch in range(args.epochs):
         epoch_start = time.time()
+        # perform update step with base optimizer instead of SAM
+        if args.start_sam<=epoch<args.end_sam:
+            base_step=False
+        else:
+            base_step=True
         # Train
         model.train()
         loss = 0.
@@ -103,10 +111,14 @@ def train(args):
             batch_loss = criterion(predictions, targets)
             batch_loss.mean().backward()
 
-            if args.minimizer=='SGD':
+            if args.minimizer=='SGD' or args.minimizer=='AdamW':
                 minimizer.step()
                 minimizer.zero_grad()
                 batch_loss_2=torch.tensor([0])
+            elif base_step:
+                # Step with base-optimizer of SAM-model
+                minimizer.optimizer.step()
+                minimizer.optimizer.zero_grad()
             else:
                 # Ascent Step
                 minimizer.ascent_step()
@@ -214,10 +226,11 @@ if __name__ == "__main__":
     parser.add_argument("--seed", default=0, type=int, help="seed")
     parser.add_argument("--no_bn", action='store_true', help="perform ascent step without bn layer")
     parser.add_argument("--only_bn", action='store_true', help="perform ascent step only with bn layer")
-
+    parser.add_argument("--start_sam", default=0, type=int, help="start SAM at this epoch")
+    parser.add_argument("--end_sam", default=100000, type=float, help="end SAM at this epoch")
     args = parser.parse_args()
 
-    assert args.minimizer in ['SGD', 'SAM_BN', 'ASAM_BN'], \
+    assert args.minimizer in ['SGD', 'SAM_BN', 'ASAM_BN', 'AdamW'], \
         f"Invalid minimizer type. Please select ASAM or SAM"
 
     # set seed
