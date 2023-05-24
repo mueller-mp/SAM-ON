@@ -187,7 +187,7 @@ def train(args):
     # Save last model
     torch.save(model.state_dict(),
                os.path.join(args.save,
-                            + 'model_weights_last.pt'))
+                             'model_weights_last.pt'))
 
     # save final state
     filename = args.save + '/summary.csv'
