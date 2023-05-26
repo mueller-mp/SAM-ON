@@ -10,6 +10,7 @@ from sam_on import SAM_ON, ASAM_ON
 import os
 import time
 from autoaugment import CIFAR10Policy
+from datetime import datetime
 
 def load_cifar(data_loader, batch_size=256, num_workers=2, autoaugment=False, data_path = '/scratch/datasets/CIFAR100/'):
     if data_loader == CIFAR10:
@@ -47,6 +48,9 @@ def load_cifar(data_loader, batch_size=256, num_workers=2, autoaugment=False, da
     return train_loader, test_loader
 
 def train(args):
+    dtime = datetime.now().strftime("%y-%m-%d_%H:%M:%S/")
+    os.makedirs(os.path.join(args.save,dtime),exist_ok=True)
+
     state = {k: v for k, v in args._get_kwargs()}
     print(state)
     # Data Loader
@@ -78,7 +82,7 @@ def train(args):
     else:
         minimizer = eval(args.minimizer)(optimizer, model, rho=args.rho, eta=args.eta, layerwise=args.layerwise,
                                          elementwise=args.elementwise, p=args.p, normalize_bias=args.normalize_bias,
-                                         no_bn=args.no_bn, only_bn = args.only_bn)
+                                         no_norm=args.no_norm, only_norm = args.only_norm)
     # Learning Rate Scheduler
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(minimizer if args.minimizer=='SGD' else minimizer.optimizer, args.epochs)
 
@@ -175,7 +179,7 @@ def train(args):
             best_accuracy = accuracy
             # Save current best model
             torch.save(model.state_dict(),
-                       os.path.join(args.save,
+                       os.path.join(args.save,dtime,
                                     'model_weights_best.pt'))
             loss_best = loss
 
@@ -186,11 +190,11 @@ def train(args):
     state['runtime'] = end_time-start_time
     # Save last model
     torch.save(model.state_dict(),
-               os.path.join(args.save,
+               os.path.join(args.save,dtime,
                              'model_weights_last.pt'))
 
     # save final state
-    filename = args.save + '/summary.csv'
+    filename = os.path.join(args.save,dtime,'summary.csv')
     file_exists = os.path.isfile(filename)
 
     with open(filename, 'a') as f:
@@ -225,21 +229,18 @@ if __name__ == "__main__":
     parser.add_argument("--eta", default=0.0, type=float, help="Eta for ASAM.")
     parser.add_argument('--save', default='./snapshots', type=str, help='directory to save models in')
     parser.add_argument("--seed", default=0, type=int, help="seed")
-    parser.add_argument("--no_bn", action='store_true', help="perform ascent step without bn layer")
-    parser.add_argument("--only_bn", action='store_true', help="perform ascent step only with bn layer")
+    parser.add_argument("--no_norm", action='store_true', help="perform ascent step without bn layer")
+    parser.add_argument("--only_norm", action='store_true', help="perform ascent step only with bn layer")
     parser.add_argument("--start_sam", default=0, type=int, help="start SAM at this epoch")
     parser.add_argument("--end_sam", default=100000, type=float, help="end SAM at this epoch")
     args = parser.parse_args()
 
     assert args.minimizer in ['SGD', 'SAM_ON', 'ASAM_ON', 'AdamW'], \
-        f"Invalid minimizer type. Please select ASAM or SAM"
+        f"Invalid minimizer type. Please select SGD, AdamW, ASAM_ON or SAM_ON"
 
     # set seed
     torch.manual_seed(args.seed)
     numpy.random.seed(args.seed)
     # Make save directory
-    if not os.path.exists(args.save):
-        os.makedirs(args.save)
-    if not os.path.isdir(args.save):
-        raise Exception('%s is not a dir' % args.save)
+    os.makedirs(args.save,exist_ok=True)
     train(args)
