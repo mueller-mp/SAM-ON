@@ -4,7 +4,7 @@ This repository contains the SAM-ON optimizer for CIFAR data. SAM-ON performs th
 ### Dependencies
 You can install the required packages via conda:
 ```
-conda env create -n samon_env.yml
+conda env create -f samon_env.yml
 conda activate samon_env
 ```
 In case this doesn't work for you, the required packages can also be found in `requirements.txt`.
