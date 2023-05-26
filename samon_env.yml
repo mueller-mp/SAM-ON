@@ -1,4 +1,4 @@
-name: samon-test
+name: samon-env
 channels:
   - pytorch
   - nvidia
