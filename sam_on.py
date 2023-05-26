@@ -2,7 +2,7 @@ import torch
 from collections import defaultdict
 
 class ASAM_ON:
-    def __init__(self, optimizer, model, rho=0.5, eta=0.01, adaptive=True, p='2', normalize_bias=False, elementwise=True, layerwise=False, no_bn=False, only_bn=False):
+    def __init__(self, optimizer, model, rho=0.5, eta=0.01, adaptive=True, p='2', normalize_bias=False, elementwise=True, layerwise=False, no_norm=False, only_norm=False):
         self.optimizer = optimizer
         self.model = model
         self.rho = rho
@@ -13,9 +13,9 @@ class ASAM_ON:
         self.normalize_bias=normalize_bias
         self.elementwise=elementwise
         self.layerwise=layerwise
-        self.only_bn=only_bn
-        self.no_bn=no_bn
-        assert not (self.only_bn and self.no_bn)
+        self.only_norm=only_norm
+        self.no_norm=no_norm
+        assert not (self.only_norm and self.no_norm)
 
     @torch.no_grad()
     def ascent_step(self):
@@ -23,7 +23,7 @@ class ASAM_ON:
         for n, p in self.model.named_parameters():
             self.state[p]['old_p'] = p.data.clone()
             self.state[p]['old_p'] = p.data.clone()
-            if (p.grad is None) or (self.no_bn and ('norm' in n or 'bn' in n)) or (self.only_bn and 'norm' not in n and 'bn' not in n):
+            if (p.grad is None) or (self.no_norm and ('norm' in n or 'bn' in n)) or (self.only_norm and 'norm' not in n and 'bn' not in n):
                 self.state[p]['perturbed']=False
                 continue
             self.state[p]['perturbed']=True
@@ -83,7 +83,7 @@ class SAM_ON(ASAM_ON):
         grads = []
         for n, p in self.model.named_parameters():
             self.state[p]['old_p'] = p.data.clone()
-            if (p.grad is None) or (self.no_bn and ('norm' in n or 'bn' in n)) or (self.only_bn and 'norm' not in n and 'bn' not in n):
+            if (p.grad is None) or (self.no_norm and ('norm' in n or 'bn' in n)) or (self.only_norm and 'norm' not in n and 'bn' not in n):
                 self.state[p]['perturbed']=False
                 continue
             self.state[p]['perturbed']=True

@@ -5,13 +5,13 @@ This repository contains the SAM-ON optimizer for CIFAR data. SAM-ON performs th
 You can install the required packages via conda:
 ```
 conda env create -f samon_env.yml
-conda activate samon_env
+conda activate samon-env
 ```
 In case this doesn't work for you, the required packages can also be found in `requirements.txt`.
 ### How to run the code
 The code is set up to train a WRN28-10 on CIFAR100, and the desired options can be passed with flags:
 ```
-  python train.py --dataset=CIFAR100 --data_path=/path/to/CIFAR100/ --minimizer=ASAM_BN --p=2 --elementwise --normalize_bias --autoaugment --rho=10. --only_norm
+  python train.py --dataset=CIFAR100 --data_path=/path/to/CIFAR100/ --minimizer=ASAM_ON --p=2 --elementwise --normalize_bias --autoaugment --rho=10. --only_norm
  ```
  Currently, SAM_ON, ASAM_ON, AdamW and SGD can be selected as optimizers. If ASAM_ON or SAM_ON is chosen and neither the only_norm nor the no_norm flag are set, the conventional (A)SAM optimizer is used.
 ### New Models
