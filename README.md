@@ -18,13 +18,11 @@ The code is set up to train a WRN28-10 on CIFAR100, and the desired options can 
 The available models are wrn28_10, resnet56, resnext vit_t, vit_s. Those can be chosen via the `--model` flag. If you would like to try SAM-ON on other models, you need to add them in `models.py`. Since for now the optimizer is selecting the normalization-layers by name, you need to make sure that _all_ normalization parameters contain the string 'norm' or 'bn' in their name, otherwise the optimizer does not recognize them. You can check this by calling model.named_parameters().
 ### Citations
 ```
-@misc{mueller2023normalization,
+@inproceedings{mueller2023normalization,
       title={Normalization Layers Are All That Sharpness-Aware Minimization Needs}, 
       author={Maximilian Mueller and Tiffany Vlaar and David Rolnick and Matthias Hein},
       year={2023},
-      eprint={2306.04226},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG}
+      booktitle = {Advances in Neural Information Processing Systems},
 }
 ```
 ### License
