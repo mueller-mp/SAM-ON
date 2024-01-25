@@ -1,3 +1,13 @@
+# [Normalization Layers Are All That Sharpness Aware Minimization Needs](https://arxiv.org/abs/2306.04226)
+
+**Maximilian Müller\*, Tiffany Vlaar\*, David Rolnick\*, Matthias Hein**
+
+**NeurIPS 2023**
+
+Paper: [https://arxiv.org/abs/2306.04226](https://arxiv.org/abs/2306.04226)  
+
+![teaser.png](teaser.png)
+
 # SAM-ON
 This repository contains the SAM-ON optimizer for CIFAR data. SAM-ON performs the (A)SAM perturbation _only_ for the normalization parameters and achieves superior performance compared to its counterparts using all layers. The optimizer is adapted from the original ASAM optimizer (https://github.com/SamsungLabs/ASAM/)
 
